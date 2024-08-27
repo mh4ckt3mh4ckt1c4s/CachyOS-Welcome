@@ -313,7 +313,10 @@ fn build_ui(application: &gtk::Application) {
     }
     pages::create_appbrowser_page(&builder);
     pages::create_tweaks_page(&builder);
-    pages::create_dnsconnections_page(&builder);
+
+    if Path::new("/usr/bin/nmcli").exists() {
+        pages::create_dnsconnections_page(&builder);
+    }
 
     // Show the UI
     main_window.show();

@@ -284,7 +284,7 @@ fn create_fixes_section(builder: &Builder) -> gtk::Box {
     let remove_orphans_btn = create_gtk_button!("remove-orphans-title");
     let clear_pkgcache_btn = create_gtk_button!("clear-pkgcache-title");
     let rankmirrors_btn = create_gtk_button!("rankmirrors-title");
-    let dnsserver_btn = create_gtk_button!("dnsserver-title");
+
     let install_gaming_btn = create_gtk_button!("install-gaming-title");
     let install_snapper_btn = create_gtk_button!("install-snapper-title");
     let install_spoof_dpi_btn = create_gtk_button!("install-spoof-dpi-title");
@@ -406,11 +406,6 @@ fn create_fixes_section(builder: &Builder) -> gtk::Box {
             }
         });
     });
-    dnsserver_btn.connect_clicked(glib::clone!(@weak builder => move |_| {
-        let name = "dnsConnectionsBrowser";
-        let stack: gtk::Stack = builder.object("stack").unwrap();
-        stack.set_visible_child_name(&format!("{name}page"));
-    }));
     install_spoof_dpi_btn.connect_clicked(move |_| {
         let dialog_tx_spoof_dpi = dialog_tx_spoof.clone();
         // Spawn child process in separate thread.
@@ -463,7 +458,17 @@ fn create_fixes_section(builder: &Builder) -> gtk::Box {
     }
     button_box_t.pack_end(&install_gaming_btn, true, true, 2);
     button_box_frth.pack_end(&install_spoof_dpi_btn, true, true, 2);
-    button_box_frth.pack_end(&dnsserver_btn, true, true, 2);
+
+    if Path::new("/usr/bin/nmcli").exists() {
+        let dnsserver_btn = create_gtk_button!("dnsserver-title");
+        dnsserver_btn.connect_clicked(glib::clone!(@weak builder => move |_| {
+            let name = "dnsConnectionsBrowser";
+            let stack: gtk::Stack = builder.object("stack").unwrap();
+            stack.set_visible_child_name(&format!("{name}page"));
+        }));
+        button_box_frth.pack_end(&dnsserver_btn, true, true, 2);
+    }
+
     button_box_f.set_halign(gtk::Align::Fill);
     button_box_s.set_halign(gtk::Align::Fill);
     button_box_t.set_halign(gtk::Align::Fill);
