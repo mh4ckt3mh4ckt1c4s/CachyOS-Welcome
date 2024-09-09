@@ -410,7 +410,7 @@ fn create_fixes_section(builder: &Builder) -> gtk::Box {
         let dialog_tx_spoof_dpi = dialog_tx_spoof.clone();
         // Spawn child process in separate thread.
         std::thread::spawn(move || {
-            const alpm_package_name: &str = "spoof-dpi-bin";
+            const alpm_package_name: &str = "spoofdpi";
             if !utils::is_alpm_pkg_installed(alpm_package_name) {
                 let _ = utils::run_cmd_terminal(format!("pacman -S {alpm_package_name}"), true);
             } else {
