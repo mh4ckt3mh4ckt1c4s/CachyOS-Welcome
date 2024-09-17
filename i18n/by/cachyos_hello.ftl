@@ -65,7 +65,7 @@ button-release-info-label = Звесткі аб выпуску
 button-wiki-label = Інфармацыя
 
 # Main Page (sections)
-section-docs = ДАКУМЕНТАЦІЯ
+section-docs = ДАКУМЕНТАЦЫЯ
 section-installer = УСТАНОЎКА
 section-support = ПАДТРЫМКА
 section-project = ПРАЕКТ
