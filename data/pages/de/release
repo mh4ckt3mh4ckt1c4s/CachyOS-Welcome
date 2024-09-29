@@ -1,86 +1,75 @@
-<big>CachyOS 24.08</big>
+<big>CachyOS 24.09</big>
 
-Dies ist unsere 9. Veröffentlichung in diesem Jahr, mit Verbesserungen bei der Hardwareerkennung und Infrastruktur-Erweiterungen.
+Dies ist unser 10. Release in diesem Jahr mit Verbesserungen der Leistung, schnelleren Updates und anderen Erweiterungen. Die Veröffentlichung kommt etwas verspätet, da das CachyOS-Team auf der LPC war und wir daher unseren üblichen Veröffentlichungszyklus nicht einhalten konnten.
 
-Ab dieser Version wird die Hardwareerkennung automatisch die offenen NVIDIA-Module verwenden. Benutzer können zu geschlossenen Modulen zurückkehren, indem sie `sudo pacman -S linux-cachyos-nvidia` ausführen.
+Wir haben begonnen, mehr Pakete mit PGO zu optimieren. Im Fall von LLVM und Clang haben wir eine Leistungssteigerung von **10%** gesehen. Zusätzlich wurden Pakete wie `svt-av1`, `nodejs` und `ripgrep` mit PGO optimiert. Wir werden weiter daran arbeiten, unsere Pakete zu optimieren und ihre Leistung zu verbessern. Außerdem haben wir handverlesene Patches für `glibc` und `gcc` von `clearlinux` hinzugefügt. Dies brachte eine zusätzliche Verbesserung von **1,5%** für den `gcc`-Compiler.
 
-Wir haben auch den neuesten NVIDIA Beta-Treiber (560) nach umfangreichen Tests integriert. Dieser Treiber scheint nach seiner zweiten Beta-Veröffentlichung in einem stabilen Zustand zu sein.
+Die Repository-Synchronisation erfolgt nun häufiger, was bedeutet, dass es noch weniger Verzögerung zwischen dem Arch-Repository und unseren optimierten Paketen geben wird. Außerdem wenden wir ab dem 27.09.24 automatisch `-fno-semantic-interposition` auf mit -fpic kompilierte Pakete an. Dies kann viele gemeinsam genutzte Pakete erheblich verbessern. Wir haben auch begonnen, `zlib` durch `zlib-ng` und dessen Kompatibilitätsschicht zu ersetzen. `zlib-ng` ist eine modernere Alternative zu `zlib`, die bessere Leistung und modernere Techniken bietet.
 
-Die Cosmic Desktop-Umgebung ist jetzt zur Installation verfügbar. Wir werden der Upstream-Veröffentlichung (Alpha 1) für die Paketierung folgen. Pakete basierend auf dem neuesten Commit sind verfügbar, werden aber nicht für die Installation verwendet. Bestehende Benutzer können Cosmic auf ihrem aktuellen Setup mit dem Befehl installieren: `sudo pacman -S cosmic-session`. Dies installiert die Basispakete für die Ausführung von Cosmic. Zusätzliche Pakete wie cosmic-text-editor, cosmic-terminal und cosmic-store sind ebenfalls verfügbar.
+Das Paket `cachyos-kde-settings` installiert jetzt eine sddm-Konfiguration, die Wayland standardmäßig für sddm aktiviert. Dies hat den Vorteil, dass Bildwiederholraten, Auflösung und andere Einstellungen darauf angewendet werden können, was eine bessere Erfahrung bietet.
+GPUs, die Wayland nicht unterstützen (ältere NVIDIA), müssen diese Konfiguration manuell entfernen. Wir könnten in Zukunft eine Hardware-Erkennungsintegration dafür einführen, aber dies wurde noch nicht umgesetzt.
 
-Unsere Infrastruktur hat bedeutende Verbesserungen erfahren:
-Wir freuen uns, bekannt zu geben, dass CDN77 uns mit einem weltweiten Cache-CDN sponsert. Dies verbessert die Verbindungsgeschwindigkeiten für Benutzer erheblich, insbesondere in Regionen, die wir zuvor mit unseren bestehenden Mirrors nicht effektiv bedienen konnten. Dieses CDN wurde etwa 3 Wochen lang von uns und der Community getestet und erhielt positives Feedback.
+In `cachyos-settings` haben wir Änderungen an der Handhabung von NetworkManager vorgenommen. NetworkManager wird nun systemd-resolved als Backend verwenden, was hilft, Probleme mit der Download-Geschwindigkeit in Steam aufgrund seiner massiven DNS-Anfragen zu beheben. Die Aktivierung des DNS-Cachings verbessert dies erheblich. Außerdem fügen wir jetzt einen NTP-Server für systemd-timesyncd hinzu, der standardmäßig time.google.com sein wird. Es gab vermehrt Berichte in Arch Linux sowie CachyOS, dass die standardmäßig bereitgestellten Zeitserver nicht korrekt funktionieren. Die zuvor verwendeten Zeitserver werden weiterhin als Fallback genutzt.
+Die CachyOS Hardware Detection (chwd) hat die Geräteverwaltung vereinfacht, und alle Profile sind nun speziell für PCI-Geräte konzipiert.
 
-Wir bieten jetzt einen Arch Linux-Mirror und Cache-CDN (CDN77) an, der während der Installation standardmäßig verwendet wird. Dies löst Probleme mit der Mirror-Rangfolge, die oft veraltete Mirrors auswählte, was zu Abhängigkeitsproblemen und fehlgeschlagenen Installationen führte. Diese Lösung gewährleistet eine schnelle Paketlieferung vom CDN und vermeidet gleichzeitig diese Probleme.
-Zwei von uns gehostete Fallback-Mirrors werden ebenfalls verwendet, zusammen mit einem Tier-1-Mirror von Arch Linux.
+In Bezug auf Fehlerbehebungen haben wir dem "Launch Installer" Korrekturen hinzugefügt, um die Zeit mit der Hardware-Uhr zu synchronisieren. Es gab einige Berichte, dass die Installation fehlschlug, da die Zeit "rückwärts" lief. Calamares hängt nun das Root-Dateisystem nach der Installation korrekt aus. Core Dumps wurden in CachyOS wieder aktiviert, um einfacheres Debugging zu ermöglichen, und Core Dumps werden alle 3 Tage gelöscht, um einen Anstieg des genutzten Speichers zu vermeiden.
 
-Der Kernel-Manager hat mehrere neue Fehlerbehebungen und Änderungen erhalten. Die sched-ext-Konfiguration unterstützt jetzt das Übergeben benutzerdefinierter Flags über die GUI an jeden Scheduler. NVIDIA-Open-Module für benutzerdefinierte Kernel wurden hinzugefügt, und es werden nun die zuletzt verwendeten Optionen für benutzerdefinierte Kernel gespeichert. Fehlerbehebungen für die Behandlung von Passwortabfragen bei Verzögerungen und das Bauen mit einem benutzerdefinierten pkgname mit aktiviertem LTO und NVIDIA-Modulen wurden ebenfalls implementiert.
-
-Wir haben ein Skript hinzugefügt, um Secure Boot einfach zu handhaben, zusammen mit einer detaillierten Wiki-Seite, die die Verwendung von `sbctl` erklärt.
-
-Das cachy-chroot-Programm kann jetzt automatisch Benutzerpartitionen von der Live-ISO einbinden, was den Prozess des Chrootens in das System bei auftretenden Problemen vereinfacht. Es überprüft montierte Dateisysteme und Subvolumes in `fstab`, bindet sie an den richtigen Pfaden ein und chrootet in das System. LUKS-Unterstützung wurde ebenfalls zu cachy-chroot hinzugefügt.
-
-Die CachyOS-Hardwareerkennung wurde mit Fehlerbehebungen bei der PRIME/Hybrid-Profilerkennung verbessert, die jetzt auf Gerätenamen basiert, um mobile Chips einfacher zu erkennen. Der RTD3-Workaround wurde aufgrund von Problemen auf einigen Setups entfernt, mit einer Anleitung im Wiki für die manuelle Anwendung, falls erforderlich.
-
-Allgemeine Fehlerbehebungen wurden an der ISO, dem Spielleistungsskript, Calamares und der Mirror-Rangfolge auf der Live-ISO vorgenommen.
-
-Die Handheld-Edition unterstützt jetzt offiziell den Ally X, dank Luke Jones' umfangreicher Arbeit an diesen Patches und Tests durch ChimeraOS und Bazzite. Die Geräteunterstützung wurde von mehreren CachyOS-Benutzern verifiziert.
-KWins libei wird jetzt für die Wayland-Eingabeemulation anstelle von libextest verwendet. Fehlerbehebungen wurden hinzugefügt, um die Verwendung von PackageKit in der Handheld-Edition zu blockieren, da es im Allgemeinen Probleme auf Arch Linux-basierten Systemen verursacht.
+Zusammen mit dieser Veröffentlichung wird die **alte ISO** aufgrund der Änderungen in der Hardware-Erkennung **nicht mehr funktionieren**.
 
 <big>Features:</big>
 
-- chwd: NVIDIA verwendet jetzt standardmäßig das offene Modul für unterstützte Karten
-- Desktop: Cosmic Desktop-Umgebung zu den Installationsoptionen hinzugefügt
-- NVIDIA: Neuester 560 Beta-Treiber ist jetzt Standard; egl-wayland gepatcht, um Abstürze in Firefox und anderen Anwendungen zu beheben
-- Mirror: CDN77 sponserte CachyOS mit Object Storage mit weltweitem Cache, was die Verbindungsgeschwindigkeiten für Benutzer erheblich verbessert
-- Mirror: CachyOS bietet jetzt seinen eigenen Arch Linux-Mirror an, um Synchronisierungsprobleme zu vermeiden, als Standard während der Installation zusammen mit Fallback-Mirrors eingestellt
-- SecureBoot: Skript und Tutorial im Wiki für einfache Secure Boot-Unterstützung eingeführt
-- cachy-chroot: Auto-Mount über fstab für vereinfachtes Chrooten hinzugefügt
-- cachy-chroot: Unterstützung für LUKS-Verschlüsselung implementiert
-- kernel-manager: Unterstützung für das Setzen von sched-ext-Flags in der sched-ext-Konfiguration hinzugefügt
-- kernel-manager: Option zum Bauen von nvidia-open eingeführt
-- kernel-manager: Option zum Merken der zuletzt verwendeten Optionen auf der Konfigurationsseite hinzugefügt
-- Paket-Updates: linux-cachyos 6.10.5, mesa 24.2.0, Plasma 6.1.4, NVIDIA 560.31.02
+- Pakete: Optimierung einer Reihe von Paketen mit PGO, wie LLVM, Clang, svt-av1 und nodejs. Dies ergab beispielsweise einen 10% schnelleren Clang-Compiler
+- Repository: Das Repository wird nun häufiger synchronisiert und aktualisiert, was bedeutet, dass es noch weniger Verzögerung geben wird. Das Synchronisationsintervall wurde von alle 3 Stunden auf jede Stunde verkürzt.
+- Repository: Ab dem 27.09.2024 werden Pakete, die mit -fpic kompiliert wurden, automatisch -fno-semantic-interposition aktivieren. Dies kann für viele Pakete eine Leistungsverbesserung bringen.
+- zlib-ng: Wird nun als Ersatz für zlib verwendet
+- sddm: Bei der KDE-Installation wird sddm nun standardmäßig Wayland als Compositor verwenden. # Migrationsänderungen im Release-Post bereitstellen
+- cachyos-settings: NetworkManager verwendet jetzt systemd-resolved als Backend, was beim DNS-Caching hilft
+- cachyos-settings: Verwendung von time.google.com als Zeitsynchronisationsserver, um Probleme mit der Zeitsynchronisation bei einigen Setups zu vermeiden
+- gcc: Hinzufügung von Korrekturen für das Tuning von znver5
+- gcc: Handverlesene Patches und Flags von Clear Linux
+- glibc: Hinzufügung von "evex"-Patches sowie Handverlesenes von Clear Linux
+- Wiki: Das Wiki erhielt viele neue Ergänzungen und Überarbeitungen
+- chwd: Vereinfachte Geräteverwaltung
+- chwd: Alle Profile sind nun speziell für PCI-Geräte konzipiert
+- chwd: Hinzufügung von --autoconfigure zur automatischen Handhabung der Treiberinstallation
+- Paket-Updates: linux-cachyos 6.11.0, mesa 24.2.3, Plasma 6.1.5, NVIDIA 560.35.03, calamares 3.3.10, QT 6.7.3
 
 <big>Bug-Fixes:</big>
 
-- chwd: Verbesserte PRIME-Profilerkennung basierend auf Gerätenamen
-- chwd: RTD3-Workaround aufgrund von Problemen auf einigen Setups entfernt
-- cachyos-rate-mirrors: Mirror-Rangfolge bei Ausführung auf Live-ISO deaktiviert
-- cachy-chroot: Behebt einen Absturz, wenn eine Partition keinen gültigen fstype oder uuid hatte (z.B. Microsoft Recovery Partition)
-- calamares: Keyring-Initialisierung überarbeitet
-- kernel-manager: Unterstützung für das Bauen von benutzerdefinierten pkgbase mit aktivierten LTO-Kerneln und Modulen behoben
-- kernel-manager: Verzögerung bei Passwortabfrage behoben
-- ISO: radeon.modeset=1 durch amdgpu.modeset=1 für moderne GPUs ersetzt
-- game-performance: Verhindert Fehler, wenn Profil nicht verfügbar ist
+- Launch-Installer: Hinzufügung von Korrekturen zur Synchronisation der Hardware-Uhr vor Beginn der Installation
+- calamares: Hinzufügung einer Korrektur zum Aushängen des Dateisystems nach der Installation
+- keyring: Bereinigung des Keyrings und Neuerstellen vor Beginn der Installation; dies behebt seltene Keyring-Probleme
+- sysctl: Core Dumps wurden wieder aktiviert
+- chwd: Entfernung von `libva-nvidia-driver` aus dem PRIME-Profil, um potenzielle Konflikte zu vermeiden und die Kompatibilität mit Software wie Spectacle zu verbessern
+- cachyos-settings: Hinzufügung eines Workarounds für GNOME Wayland-Abstürze
+- cachyos-fish/zsh-config: Entfernung von Wayland-spezifischen Eigenheiten
 
 <big>Changelog für die Handheld-Edition:</big>
 
-- Geräteunterstützung: Unterstützung für Ally X hinzugefügt, dank Luke Jones
-- libei: Unterstützung für libei implementiert, ersetzt libextest
-- packagekit: Installation von packagekit blockiert, um Probleme mit Systemaktualisierungen über Discover zu vermeiden
-- hook: Pacman-Hook hinzugefügt, um Konflikte mit nativ kompilierten Proton-Versionen zu vermeiden und potenzielle Probleme zu verhindern
-- jupiter-fan-control, steamdeck-dsp und Steam Deck Firmware aktualisiert
+- Ally/Ally X: HHD wurde durch inputplumber ersetzt, da hhd den Kernel-Treiber dafür nicht korrekt verwendet, was zu Problemen führt.
+- Handheld-bezogene Pakete aktualisiert
 
 **Manuelle Änderungen für bestehende Benutzer:**
 
 Keine speziellen Änderungen erforderlich.
-Benutzer mit einer NVIDIA-Karte, die das Open Module unterstützt (20xx oder höher), können den nvidia-open-Treiber mit folgendem Befehl verwenden:
-`sudo pacman -S linux-cachyos-nvidia-open`
+Benutzer, die den Legacy-NVIDIA-Treiber (470xx und 390xx) verwenden, müssen das cachyos-kde-settings-Paket aufgrund der Verwendung von Wayland entfernen.
+Einfach `sudo pacman -R cachyos-kde-settings` ausführen, löst das Problem.
 
 <big>Download:</big>
 
 Holen Sie sich Ihre Kopie der neuesten ISO von unseren Mirrors auf SourceForge:
 
-* CDN: https://iso.cachyos.org/desktop/240817/cachyos-desktop-linux-240817.iso
-* Deutschland: https://mirror.cachyos.org/ISO/desktop/240817/cachyos-desktop-linux-240817.iso
-* USA: https://us.cachyos.org/ISO/240817/desktop/cachyos-desktop-linux-240817.iso
-* China: https://mirrors.tuna.tsinghua.edu.cn/cachyos/desktop/240817/cachyos-desktop-linux-240817.iso
+* CDN: https://iso.cachyos.org/desktop/240929/cachyos-desktop-linux-240929.iso
+* CDN2: https://cdn77.cachyos.org/ISO/desktop/240929/cachyos-desktop-linux-240929.iso
+* Deutschland: https://mirror.cachyos.org/ISO/desktop/240929/cachyos-desktop-linux-240929.iso
+* USA: https://us.cachyos.org/ISO/240929/desktop/cachyos-desktop-linux-240929.iso
+* China: https://mirrors.tuna.tsinghua.edu.cn/cachyos/desktop/240929/cachyos-desktop-linux-240929.iso
 * https://sourceforge.net/projects/cachyos-arch/files
 
 Handheld-Edition:
 
-* https://iso.cachyos.org/handheld/240817/cachyos-handheld-linux-240817.iso
+* CDN: https://iso.cachyos.org/handheld/240929/cachyos-handheld-linux-240929.iso
+* CDN2: https://cdn77.cachyos.org/ISO/handheld/240929/cachyos-handheld-linux-240929.iso
 
 **Unterstützen Sie uns:**
 
