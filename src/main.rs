@@ -41,6 +41,33 @@ static G_SAVE_JSON: Lazy<Mutex<serde_json::Value>> = Lazy::new(|| {
 });
 static mut G_HELLO_WINDOW: Option<Arc<HelloWindow>> = None;
 
+fn version_compat_check(message: String) {
+    let version_tag = fs::read_to_string("/etc/edition-tag").unwrap_or("desktop".to_string());
+
+    if version_tag == "handheld" {
+        let profiles_path =
+            format!("{}/handhelds/profiles.toml", chwd::consts::CHWD_PCI_CONFIG_DIR);
+
+        let handheld_profiles =
+            chwd::profile::parse_profiles(&profiles_path).expect("Failed to parse profiles");
+        let handheld_profile_names: Vec<_> =
+            handheld_profiles.iter().map(|profile| &profile.name).collect();
+
+        let available_profiles = chwd::profile::get_available_profiles(false);
+
+        if available_profiles.iter().any(|profile| handheld_profile_names.contains(&&profile.name))
+        {
+            let window_ref = unsafe { &G_HELLO_WINDOW.as_ref().unwrap().window };
+            show_simple_dialog(
+                window_ref,
+                gtk::MessageType::Warning,
+                &fl!("unsupported-hw-warning"),
+                message.clone(),
+            );
+        }
+    }
+}
+
 fn quick_message(message: String) {
     // Spawn child process in separate thread.
     std::thread::spawn(move || {
@@ -482,21 +509,22 @@ fn on_languages_changed(param: &[glib::Value]) -> Option<glib::Value> {
 
 fn on_action_clicked(param: &[glib::Value]) -> Option<glib::Value> {
     let widget = param[0].get::<gtk::Widget>().unwrap();
-    return match widget.widget_name().as_str() {
+    match widget.widget_name().as_str() {
         "install" => {
+            version_compat_check(fl!("calamares-install-type"));
             quick_message(fl!("calamares-install-type"));
             None
-        },
+        }
         "autostart" => {
             let action = widget.downcast::<gtk::Switch>().unwrap();
             set_autostart(action.is_active());
             None
-        },
+        }
         _ => {
             show_about_dialog();
             None
-        },
-    };
+        }
+    }
 }
 
 fn on_btn_clicked(param: &[glib::Value]) -> Option<glib::Value> {
