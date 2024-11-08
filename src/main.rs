@@ -41,10 +41,54 @@ static G_SAVE_JSON: Lazy<Mutex<serde_json::Value>> = Lazy::new(|| {
 });
 static mut G_HELLO_WINDOW: Option<Arc<HelloWindow>> = None;
 
-fn version_compat_check(message: String) {
-    let version_tag = fs::read_to_string("/etc/edition-tag").unwrap_or("desktop".to_string());
+#[derive(serde::Deserialize)]
+struct Versions {
+    #[serde(rename = "desktopISOVersion")]
+    desktop_iso_version: String,
+    #[serde(rename = "handheldISOVersion")]
+    handheld_iso_version: String,
+}
 
-    if version_tag == "handheld" {
+fn outdated_version_check(message: String) {
+    let edition_tag = fs::read_to_string("/etc/edition-tag").unwrap_or("desktop".to_string());
+    let version_tag = fs::read_to_string("/etc/version-tag").unwrap_or_default();
+
+    let window_ref = unsafe { &G_HELLO_WINDOW.as_ref().unwrap().window };
+
+    if version_tag.contains("testing") {
+        return show_simple_dialog(
+            window_ref,
+            gtk::MessageType::Warning,
+            &fl!("testing-iso-warning"),
+            message.clone(),
+        );
+    }
+
+    let versions = reqwest::blocking::get("https://cachyos.org/versions.json")
+        .unwrap()
+        .json::<Versions>()
+        .unwrap();
+
+    let latest_version = if edition_tag == "desktop" {
+        versions.desktop_iso_version
+    } else {
+        versions.handheld_iso_version
+    };
+
+    if version_tag != latest_version {
+        show_simple_dialog(
+            window_ref,
+            gtk::MessageType::Warning,
+            &fl!("outdated-version-warning"),
+            message.clone(),
+        );
+    }
+}
+
+fn edition_compat_check(message: String) {
+    let edition_tag = fs::read_to_string("/etc/edition-tag").unwrap_or("desktop".to_string());
+
+    if edition_tag == "handheld" {
         let profiles_path =
             format!("{}/handhelds/profiles.toml", chwd::consts::CHWD_PCI_CONFIG_DIR);
 
@@ -68,25 +112,26 @@ fn version_compat_check(message: String) {
     }
 }
 
+fn connectivity_check(message: String) {
+    let status = match reqwest::blocking::get("https://cachyos.org") {
+        Ok(resp) => resp.status().is_success() || resp.status().is_server_error(),
+        _ => false,
+    };
+
+    if !status {
+        let window_ref = unsafe { &G_HELLO_WINDOW.as_ref().unwrap().window };
+        utils::show_simple_dialog(
+            window_ref,
+            gtk::MessageType::Error,
+            &fl!("offline-error"),
+            message,
+        );
+    }
+}
+
 fn quick_message(message: String) {
     // Spawn child process in separate thread.
     std::thread::spawn(move || {
-        let status = match reqwest::blocking::get("https://cachyos.org") {
-            Ok(resp) => resp.status().is_success() || resp.status().is_server_error(),
-            _ => false,
-        };
-
-        if !status {
-            let window_ref = unsafe { &G_HELLO_WINDOW.as_ref().unwrap().window };
-            utils::show_simple_dialog(
-                window_ref,
-                gtk::MessageType::Error,
-                &fl!("offline-error"),
-                message,
-            );
-            return;
-        }
-
         let cmd = "/usr/local/bin/calamares-online.sh".to_owned();
         Exec::cmd(cmd).join().unwrap();
     });
@@ -511,19 +556,22 @@ fn on_action_clicked(param: &[glib::Value]) -> Option<glib::Value> {
     let widget = param[0].get::<gtk::Widget>().unwrap();
     match widget.widget_name().as_str() {
         "install" => {
-            version_compat_check(fl!("calamares-install-type"));
+            connectivity_check(fl!("calamares-install-type"));
+            edition_compat_check(fl!("calamares-install-type"));
+            outdated_version_check(fl!("calamares-install-type"));
             quick_message(fl!("calamares-install-type"));
             None
-        }
+        },
         "autostart" => {
             let action = widget.downcast::<gtk::Switch>().unwrap();
             set_autostart(action.is_active());
             None
-        }
+        },
         _ => {
+            outdated_version_check(fl!("calamares-install-type"));
             show_about_dialog();
             None
-        }
+        },
     }
 }
 
