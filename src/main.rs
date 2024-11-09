@@ -567,7 +567,6 @@ fn on_action_clicked(param: &[glib::Value]) -> Option<glib::Value> {
             None
         },
         _ => {
-            outdated_version_check(fl!("calamares-install-type"));
             show_about_dialog();
             None
         },
