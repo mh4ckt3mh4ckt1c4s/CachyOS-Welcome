@@ -1022,8 +1022,7 @@ fn on_refreshkeyring_btn_clicked(_: &gtk::Button) {
         .into_iter()
         .filter(|pkg| pkg.name() != "gnome-keyring" && pkg.name() != "python-keyring")
         .fold(String::new(), |mut output, pkg| {
-            let mut pkgname = String::from(pkg.name());
-            pkgname.remove_matches("-keyring");
+            let pkgname = str::replace(pkg.name(), "-keyring", "");
             let _ = write!(output, "{pkgname} ");
             output
         });
