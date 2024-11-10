@@ -50,7 +50,7 @@ struct Versions {
 
 fn outdated_version_check(message: String) {
     let edition_tag = fs::read_to_string("/etc/edition-tag").unwrap_or("desktop".to_string());
-    let version_tag = fs::read_to_string("/etc/version-tag").unwrap_or_default().trim().to_string();
+    let version_tag = fs::read_to_string("/etc/version-tag").unwrap_or_default();
 
     let window_ref = unsafe { &G_HELLO_WINDOW.as_ref().unwrap().window };
 
@@ -68,11 +68,13 @@ fn outdated_version_check(message: String) {
         .json::<Versions>()
         .unwrap();
 
-    let latest_version = if edition_tag == "desktop" {
+    let latest_version = if edition_tag.contains("desktop") {
         versions.desktop_iso_version
     } else {
         versions.handheld_iso_version
-    };
+    }
+    .trim()
+    .to_owned();
 
     if version_tag != latest_version {
         show_simple_dialog(
