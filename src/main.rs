@@ -65,7 +65,18 @@ fn outdated_version_check(message: String) {
         );
     }
 
-    let versions = reqwest::blocking::get("https://cachyos.org/versions.json")
+    let response = reqwest::blocking::get("https://cachyos.org/versions.json");
+
+    if response.is_err() {
+        return show_simple_dialog(
+            window_ref,
+            gtk::MessageType::Warning,
+            &fl!("offline-error"),
+            message.clone(),
+        );
+    }
+
+    let versions = response
         .unwrap()
         .json::<Versions>()
         .unwrap();
