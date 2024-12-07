@@ -183,9 +183,9 @@ dependencies = [
 
 [[package]]
 name = "bindgen"
-version = "0.70.1"
+version = "0.71.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f49d8fed880d473ea71efb9bf597651e77201bdd4893efe54c9e5d65ae04ce6f"
+checksum = "360897d4f2fdeea5d32f6dac9287952ae5babdc2aad42ad787c9470a4a6e3fee"
 dependencies = [
  "bitflags",
  "cexpr",
@@ -194,7 +194,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "regex",
- "rustc-hash",
+ "rustc-hash 2.1.0",
  "shlex",
  "syn 2.0.90",
 ]
@@ -344,8 +344,8 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
 name = "chwd"
-version = "1.10.0"
-source = "git+https://github.com/CachyOS/chwd?rev=d7e7e65c5c2c0ffe0434adad9a0016617d1f8bb7#d7e7e65c5c2c0ffe0434adad9a0016617d1f8bb7"
+version = "1.11.0"
+source = "git+https://github.com/CachyOS/chwd?rev=3b288ba0d86b1d078057eb7f3d50b562959fd17a#3b288ba0d86b1d078057eb7f3d50b562959fd17a"
 dependencies = [
  "anyhow",
  "clap",
@@ -610,7 +610,7 @@ dependencies = [
  "fluent-syntax",
  "intl-memoizer",
  "intl_pluralrules",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "self_cell 0.10.3",
  "smallvec",
  "unic-langid",
@@ -1548,7 +1548,7 @@ dependencies = [
 [[package]]
 name = "libpci"
 version = "0.1.0"
-source = "git+https://github.com/CachyOS/chwd?rev=d7e7e65c5c2c0ffe0434adad9a0016617d1f8bb7#d7e7e65c5c2c0ffe0434adad9a0016617d1f8bb7"
+source = "git+https://github.com/CachyOS/chwd?rev=3b288ba0d86b1d078057eb7f3d50b562959fd17a#3b288ba0d86b1d078057eb7f3d50b562959fd17a"
 dependencies = [
  "libc",
  "libpci-sys",
@@ -1557,7 +1557,7 @@ dependencies = [
 [[package]]
 name = "libpci-sys"
 version = "0.1.0"
-source = "git+https://github.com/CachyOS/chwd?rev=d7e7e65c5c2c0ffe0434adad9a0016617d1f8bb7#d7e7e65c5c2c0ffe0434adad9a0016617d1f8bb7"
+source = "git+https://github.com/CachyOS/chwd?rev=3b288ba0d86b1d078057eb7f3d50b562959fd17a#3b288ba0d86b1d078057eb7f3d50b562959fd17a"
 dependencies = [
  "bindgen",
  "cc",
@@ -2163,6 +2163,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
+name = "rustc-hash"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7fb8039b3032c191086b10f11f319a6e99e1e82889c5cc6046f515c9db1d497"
+
+[[package]]
 name = "rustc_version"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2744,7 +2750,7 @@ version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "deb68604048ff8fa93347f02441e4487594adc20bb8a084f9e564d2b827a0a9f"
 dependencies = [
- "rustc-hash",
+ "rustc-hash 1.1.0",
 ]
 
 [[package]]
