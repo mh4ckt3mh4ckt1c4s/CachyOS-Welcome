@@ -169,6 +169,10 @@ pub fn show_simple_dialog(
     dialog.connect_response(|dialog, _| dialog.close());
 
     dialog.show();
+    // block until user responds
+    dialog.run();
+    // we are required to close/hide manually according to the docs
+    dialog.close();
 }
 
 #[cfg(test)]
