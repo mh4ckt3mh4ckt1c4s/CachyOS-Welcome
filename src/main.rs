@@ -48,7 +48,7 @@ struct Versions {
     handheld_iso_version: String,
 }
 
-fn outdated_version_check(message: String) {
+fn outdated_version_check(message: String) -> bool {
     let edition_tag: String =
         fs::read_to_string("/etc/edition-tag").unwrap_or("desktop".into()).trim().into();
     let version_tag: String =
@@ -57,23 +57,25 @@ fn outdated_version_check(message: String) {
     let window_ref = unsafe { &G_HELLO_WINDOW.as_ref().unwrap().window };
 
     if version_tag.contains("testing") {
-        return show_simple_dialog(
+        utils::show_simple_dialog(
             window_ref,
             gtk::MessageType::Warning,
             &fl!("testing-iso-warning"),
             message.clone(),
         );
+        return true;
     }
 
     let response = reqwest::blocking::get("https://cachyos.org/versions.json");
 
     if response.is_err() {
-        return show_simple_dialog(
+        utils::show_simple_dialog(
             window_ref,
             gtk::MessageType::Warning,
             &fl!("offline-error"),
             message.clone(),
         );
+        return false;
     }
 
     let versions = response
@@ -90,16 +92,17 @@ fn outdated_version_check(message: String) {
     .to_owned();
 
     if version_tag != latest_version {
-        show_simple_dialog(
+        utils::show_simple_dialog(
             window_ref,
             gtk::MessageType::Warning,
             &fl!("outdated-version-warning"),
             message.clone(),
         );
     }
+    return true;
 }
 
-fn edition_compat_check(message: String) {
+fn edition_compat_check(message: String) -> bool {
     let edition_tag = fs::read_to_string("/etc/edition-tag").unwrap_or("desktop".to_string());
 
     if edition_tag == "handheld" {
@@ -116,17 +119,19 @@ fn edition_compat_check(message: String) {
         if available_profiles.iter().any(|profile| handheld_profile_names.contains(&&profile.name))
         {
             let window_ref = unsafe { &G_HELLO_WINDOW.as_ref().unwrap().window };
-            show_simple_dialog(
+            utils::show_simple_dialog(
                 window_ref,
                 gtk::MessageType::Warning,
                 &fl!("unsupported-hw-warning"),
                 message.clone(),
             );
+            return false;
         }
     }
+    return true;
 }
 
-fn connectivity_check(message: String) {
+fn connectivity_check(message: String) -> bool {
     let status = match reqwest::blocking::get("https://cachyos.org") {
         Ok(resp) => resp.status().is_success() || resp.status().is_server_error(),
         _ => false,
@@ -140,12 +145,20 @@ fn connectivity_check(message: String) {
             &fl!("offline-error"),
             message,
         );
+        return false;
     }
+    return true;
 }
 
 fn quick_message(message: String) {
     // Spawn child process in separate thread.
     std::thread::spawn(move || {
+        let checks = [connectivity_check, edition_compat_check, outdated_version_check];
+        if !checks.iter().map(|x| x(message.clone())).all(|x| x) {
+            // if any check failed, return
+            return;
+        }
+
         let cmd = "/usr/local/bin/calamares-online.sh".to_owned();
         Exec::cmd(cmd).join().unwrap();
     });
@@ -570,9 +583,6 @@ fn on_action_clicked(param: &[glib::Value]) -> Option<glib::Value> {
     let widget = param[0].get::<gtk::Widget>().unwrap();
     match widget.widget_name().as_str() {
         "install" => {
-            connectivity_check(fl!("calamares-install-type"));
-            edition_compat_check(fl!("calamares-install-type"));
-            outdated_version_check(fl!("calamares-install-type"));
             quick_message(fl!("calamares-install-type"));
             None
         },
