@@ -153,14 +153,21 @@ fn connectivity_check(message: String) -> bool {
 fn quick_message(message: String) {
     // Spawn child process in separate thread.
     std::thread::spawn(move || {
+        let builder = unsafe { &G_HELLO_WINDOW.as_ref().unwrap().builder };
+
+        let install_btn: gtk::Button = builder.object("install").unwrap();
+        install_btn.set_sensitive(false);
+
         let checks = [connectivity_check, edition_compat_check, outdated_version_check];
         if !checks.iter().map(|x| x(message.clone())).all(|x| x) {
             // if any check failed, return
+            install_btn.set_sensitive(true);
             return;
         }
 
         let cmd = "/usr/local/bin/calamares-online.sh".to_owned();
         Exec::cmd(cmd).join().unwrap();
+        install_btn.set_sensitive(true);
     });
 }
 
