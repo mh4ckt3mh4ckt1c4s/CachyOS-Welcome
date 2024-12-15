@@ -122,7 +122,7 @@ fn edition_compat_check(message: String) -> bool {
                 &fl!("unsupported-hw-warning"),
                 message.clone(),
             );
-            return false;
+            return true;
         }
     }
     return true;
