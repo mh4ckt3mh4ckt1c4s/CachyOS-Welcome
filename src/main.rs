@@ -78,10 +78,7 @@ fn outdated_version_check(message: String) -> bool {
         return false;
     }
 
-    let versions = response
-        .unwrap()
-        .json::<Versions>()
-        .unwrap();
+    let versions = response.unwrap().json::<Versions>().unwrap();
 
     let latest_version = if edition_tag.contains("desktop") {
         versions.desktop_iso_version
